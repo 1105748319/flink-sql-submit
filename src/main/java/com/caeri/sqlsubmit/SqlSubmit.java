@@ -7,6 +7,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.SqlParserException;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.catalog.hive.HiveCatalog;
+import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.mapred.JobConf;
 import sun.misc.BASE64Decoder;
 
 import java.time.Duration;
@@ -17,9 +19,8 @@ import java.util.stream.Stream;
 
 public class SqlSubmit {
     public static void main(String[] args) throws Exception {
-
 //String argsss = "Q1JFQVRFIFRBQkxFIGZsaW5rLnRlc3Rfa2Fma2Ffc291cmNlX2x5MTIgKAogICAgICAgICAgICAgICAgICBpZCBJTlQsCiAgICAgICAgICAgICAgICAgIG5hbWUgU1RSSU5HLAogICAgICAgICAgICAgICAgICBhZ2UgSU5ULAogICAgICAgICAgICAgICAgICBzdGF0ZGF0ZSBTVFJJTkcKICAgICAgICAgICAgICAgICkgV0lUSCAoCiAgICAgICAgICAgICAgICAgJ2Nvbm5lY3RvcicgPSAna2Fma2EnLAogICAgICAgICAgICAgICAgICd0b3BpYycgPSAna2Fma2FfdGVzdDEnLAogICAgICAgICAgICAgICAgICdwcm9wZXJ0aWVzLmJvb3RzdHJhcC5zZXJ2ZXJzJyA9ICdtYXN0ZXI6NjY2NycsCiAgICAgICAgICAgICAgICAgJ3Byb3BlcnRpZXMuZ3JvdXAuaWQnID0gJ2hpdmVfdGVzdF9seTEyJywKICAgICAgICAgICAgICAgICAnZm9ybWF0JyA9ICdqc29uJywKICAgICAgICAgICAgICAgICAnc2Nhbi5zdGFydHVwLm1vZGUnID0gJ2xhdGVzdC1vZmZzZXQnKTsKCQkJCSAKc2V0IHRhYmxlLnNxbC1kaWFsZWN0PWhpdmU7CQkJCSAKQ1JFQVRFIFRBQkxFIElGIE5PVCBFWElTVFMgZmxpbmsudGVzdF9oaXZlX3NpbmtfbHkxMiAoCiAgICAgICAgICAgICAgICAgIGlkIElOVCwKICAgICAgICAgICAgICAgICAgbmFtZSBTVFJJTkcsCiAgICAgICAgICAgICAgICAgIGFnZSBJTlQKICAgICAgICAgICAgICAgICkgUEFSVElUSU9ORUQgQlkgKGR0IFN0cmluZywgYGhvdXJgIFN0cmluZykgU1RPUkVEIEFTIFBBUlFVRVQKICAgICAgICAgICAgICAgIFRCTFBST1BFUlRJRVMgKAogICAgICAgICAgICAgICAgICAncGFydGl0aW9uLnRpbWUtZXh0cmFjdG9yLnRpbWVzdGFtcC1wYXR0ZXJuJz0nJGR0ICRob3VyOjAwOjAwJywKICAgICAgICAgICAgICAgICAgJ3NpbmsucGFydGl0aW9uLWNvbW1pdC50cmlnZ2VyJyA9ICdwcm9jZXNzLXRpbWUnLAogICAgICAgICAgICAgICAgICAnc2luay5wYXJ0aXRpb24tY29tbWl0LmRlbGF5Jz0nMHMnLAogICAgICAgICAgICAgICAgICAnc2luay5wYXJ0aXRpb24tY29tbWl0LnBvbGljeS5raW5kJyA9ICdtZXRhc3RvcmUsc3VjY2Vzcy1maWxlJywKICAgICAgICAgICAgICAgICAgJ2F1dG8tY29tcGFjdGlvbic9J3RydWUnLAogICAgICAgICAgICAgICAgICAnY29tcGFjdGlvbi5maWxlLXNpemUnPScxTUInCiAgICAgICAgICAgICAgICApOwpzZXQgdGFibGUuc3FsLWRpYWxlY3Q9REVGQVVMVDsJCQkJCklOU0VSVCBJTlRPIGZsaW5rLnRlc3RfaGl2ZV9zaW5rX2x5MTIgU0VMRUNUIGlkLG5hbWUsYWdlLERBVEVfRk9STUFUKHN0YXRkYXRlLCd5eXl5LU1NLWRkJyksREFURV9GT1JNQVQoc3RhdGRhdGUsICdISCcpIEZST00gZmxpbmsudGVzdF9rYWZrYV9zb3VyY2VfbHkxMjs=";
- for (int i = 0; i < args.length; i++) {
+        for (int i = 0; i < args.length; i++) {
             System.out.println("*************************" + args[i]);
         }
         if (args.length > 0) {
@@ -29,14 +30,14 @@ public class SqlSubmit {
 
             String[] separated = new String(bytes).split("\n");
             for (int i = 0; i < separated.length; i++) {
-                System.out.println(separated[i]+"====================");
+                System.out.println(separated[i] + "====================");
             }
 
             List<String> list = Stream.of(separated).collect(Collectors.toList());
             SqlSubmit submit = new SqlSubmit(list);
             submit.run();
-        }else {
-            throw new RuntimeException("The parameter is abnormal, the parameter should be greater than or equal to one"+ Arrays.toString(args)+"+++++++"+args.length);
+        } else {
+            throw new RuntimeException("The parameter is abnormal, the parameter should be greater than or equal to one" + Arrays.toString(args) + "+++++++" + args.length);
         }
     }
 
@@ -57,8 +58,9 @@ public class SqlSubmit {
         HiveCatalog catalog = new HiveCatalog(
                 "myhive",
                 "flink",
-                "D:\\zhongqi-project\\flink-sql-submit\\src\\main\\resources",
-                "D:\\zhongqi-project\\flink-sql-submit\\src\\main\\resources",
+                //new HiveConf(),
+                "/usr/hdp/3.1.4.0-315/hive/conf",
+                "/usr/hdp/3.1.4.0-315/hive/conf",
                 null
 
         );
@@ -70,6 +72,7 @@ public class SqlSubmit {
         }
         //tEnv.execute("SQL Job");
     }
+
     // --------------------------------------------------------------------------------------------
     private void callCommand(SqlCommandParser.SqlCommandCall cmdCall) {
         switch (cmdCall.command) {
@@ -96,7 +99,7 @@ public class SqlSubmit {
     private void callCreateTable(SqlCommandParser.SqlCommandCall cmdCall) {
         String ddl = cmdCall.operands[0];
         try {
-            System.out.println("CreateTable"+ddl);
+            System.out.println("CreateTable" + ddl);
             tEnv.executeSql(ddl);
         } catch (SqlParserException e) {
             throw new RuntimeException("SQL parse failed:\n" + ddl + "\n", e);
@@ -106,7 +109,7 @@ public class SqlSubmit {
     private void callInsertInto(SqlCommandParser.SqlCommandCall cmdCall) {
         String dml = cmdCall.operands[0];
         try {
-            System.out.println("callInsertInto"+dml);
+            System.out.println("callInsertInto" + dml);
             tEnv.executeSql(dml);
         } catch (SqlParserException e) {
             throw new RuntimeException("SQL parse failed:\n" + dml + "\n", e);

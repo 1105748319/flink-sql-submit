@@ -7,9 +7,11 @@ import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.SqlDialect;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 import org.apache.flink.table.catalog.hive.HiveCatalog;
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.time.Duration;
 
 public class Kafka2HivePartition {
@@ -17,7 +19,6 @@ public class Kafka2HivePartition {
     private final static Logger logger = LoggerFactory.getLogger(Kafka2HivePartition.class);
 
     public static void main(String[] args) throws Exception {
-
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         EnvironmentSettings tableEnvSettings = EnvironmentSettings.newInstance()
                 .useBlinkPlanner()
@@ -46,19 +47,18 @@ public class Kafka2HivePartition {
         config.setMaxConcurrentCheckpoints(1);*/
 
 
-
-       StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, tableEnvSettings);
+        HiveConf conf = new HiveConf();
+        StreamTableEnvironment tableEnv = StreamTableEnvironment.create(env, tableEnvSettings);
        tableEnv.getConfig().getConfiguration().set(ExecutionCheckpointingOptions.CHECKPOINTING_MODE, CheckpointingMode.EXACTLY_ONCE);
         tableEnv.getConfig().getConfiguration().set(ExecutionCheckpointingOptions.CHECKPOINTING_INTERVAL, Duration.ofSeconds(20));
         HiveCatalog catalog = new HiveCatalog(
                 "myhive",
                 "flink",
-                "D:\\zhongqi-project\\flink-sql-submit\\src\\main\\resources",
-                "D:\\zhongqi-project\\flink-sql-submit\\src\\main\\resources",
+                conf,
                 null
 
         );
-        tableEnv.registerCatalog("myhive", catalog);
+       /* tableEnv.registerCatalog("myhive", catalog);
         tableEnv.useCatalog("myhive");
 
         tableEnv.executeSql("DROP TABLE IF EXISTS flink.test_kafka_source_ly12");
@@ -91,6 +91,6 @@ public class Kafka2HivePartition {
                 "  'compaction.file-size'='1MB'"+
                 ")");
         tableEnv.getConfig().setSqlDialect(SqlDialect.DEFAULT);
-        tableEnv.executeSql("INSERT INTO flink.test_hive_sink_ly12 SELECT id,name,age,DATE_FORMAT(statdate,'yyyy-MM-dd'),DATE_FORMAT(statdate, 'HH') FROM flink.test_kafka_source_ly12");
+        tableEnv.executeSql("INSERT INTO flink.test_hive_sink_ly12 SELECT id,name,age,DATE_FORMAT(statdate,'yyyy-MM-dd'),DATE_FORMAT(statdate, 'HH') FROM flink.test_kafka_source_ly12");*/
     }
 }
