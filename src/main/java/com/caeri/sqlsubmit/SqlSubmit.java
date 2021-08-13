@@ -49,7 +49,6 @@ public class SqlSubmit {
     private SqlSubmit(List<String> list) {
         this.sql = list;
     }
-
     private void run() throws Exception {
         env = StreamExecutionEnvironment.getExecutionEnvironment();
         tEnv = StreamTableEnvironment.create(env);
